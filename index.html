@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MigrantMatch – Worker Expiry Tracker (Demo)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#f4f6fb;
+  margin:0;
+}
+.header{
+  background:#1976d2;
+  color:#fff;
+  padding:18px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  position:relative;
+}
+.badge{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#ff9800;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+}
+.subheader{
+  font-size:13px;
+  opacity:.9;
+}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  margin:20px auto;
+  max-width:600px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:6px;
+  border:1px solid #ddd;
+}
+button{
+  background:#1976d2;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:hover{
+  opacity:.9;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  padding:8px;
+  border-bottom:1px solid #eee;
+}
+.hidden{
+  display:none;
+}
+.expired{color:red;font-weight:bold}
+.warning{color:orange;font-weight:bold}
+.ok{color:green;font-weight:bold}
+.demo{text-align:center;font-size:12px;color:#777}
+.empty{text-align:center;color:#999;font-size:13px}
+.footer{
+  text-align:center;
+  margin:40px 0;
+  font-size:13px;
+  color:#888;
+}
+.upgrade{
+  margin-top:10px;
+  padding:10px;
+  background:#e3f2fd;
+  border-radius:8px;
+}
+label{
+  font-weight:bold;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  MigrantMatch
+  <div class="badge">DEMO</div>
+  <div class="subheader">Worker Document & Expiry Tracking</div>
+</div>
+
+<div class="card">
+  <div class="demo">Supports 3 languages: English · ไทย · မြန်မာ</div>
+  <select>
+    <option>English</option>
+    <option>ไทย</option>
+    <option>မြန်မာ</option>
+  </select>
+</div>
+
+<div id="loginBox" class="card">
+  <h2>Company Login (DEMO)</h2>
+
+  <!-- Default values already filled -->
+  <input id="company" value="Demo Company">
+  <input id="email" value="demo@migrantmatch.com">
+
+  <button id="loginBtn">Login</button>
+  <div class="demo">Demo – Auto fill enabled</div>
+</div>
+
+<div id="appBox" class="hidden">
+
+  <div class="card">
+    <h2 id="companyName"></h2>
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <div class="card">
+    <h3>Add Worker (Max 3)</h3>
+
+    <input id="workerName" placeholder="Worker Name">
+
+    <label>Nationality</label>
+    <select id="nationality">
+      <option value="" disabled selected>Select Nationality</option>
+      <option value="MM Myanmar">🇲🇲 Myanmar</option>
+      <option value="Other">🌍 Other</option>
+    </select>
+
+    <label>Work Permit Expiry Date</label>
+    <input id="permitDate" type="date">
+
+    <button id="addWorkerBtn">Add Worker</button>
+    <button onclick="loadDemo()">Load Sample Workers</button>
+  </div>
+
+  <div class="card">
+    <h3>Worker List</h3>
+    <div id="empty" class="empty">No workers added yet</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Nationality</th>
+          <th>Permit Expiry</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="workerList"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer class="footer">
+  © <span id="year"></span> MigrantMatch. All rights reserved.
+  <div class="upgrade">🚀 Upgrade to Paid version for unlimited workers & reminders</div>
+  <br>
+  <a href="mailto:migrantmatch.info@gmail.com">migrantmatch.info@gmail.com</a>
+</footer>
+
+<script>
+
+let workers=[];
+
+document.getElementById("loginBtn").onclick=()=>{
+
+  const company=document.getElementById("company").value;
+
+  document.getElementById("companyName").innerText=company;
+
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("appBox").classList.remove("hidden");
+};
+
+document.getElementById("logoutBtn").onclick=()=>{
+  location.reload();
+};
+
+document.getElementById("addWorkerBtn").onclick=()=>{
+
+  if(workers.length>=3){
+    alert("Demo limit: 3 workers");
+    return;
+  }
+
+  const name=document.getElementById("workerName").value;
+  const nat=document.getElementById("nationality").value;
+  const date=document.getElementById("permitDate").value;
+
+  if(!name||!nat||!date){
+    alert("Please complete all fields");
+    return;
+  }
+
+  workers.push({n:name,nat:nat,d:date});
+
+  document.getElementById("workerName").value="";
+  document.getElementById("permitDate").value="";
+  document.getElementById("nationality").value="";
+
+  render();
+};
+
+function loadDemo(){
+  const today=new Date();
+  const addDays=d=>{
+    const x=new Date(today);
+    x.setDate(x.getDate()+d);
+    return x.toISOString().split('T')[0];
+  };
+
+  workers=[
+    {n:'Aung Min',nat:'MM Myanmar',d:addDays(90)},
+    {n:'Somchai',nat:'Other',d:addDays(-10)}
+  ];
+  render();
+}
+
+function status(d){
+  const diff=(new Date(d)-new Date())/86400000;
+
+  if(diff<0) return '<span class="expired">Expired</span>';
+  if(diff<=30) return '<span class="warning">Expiring Soon</span>';
+  return '<span class="ok">OK</span>';
+}
+
+function render(){
+  const list=document.getElementById("workerList");
+  list.innerHTML="";
+  document.getElementById("empty").style.display=workers.length?"none":"block";
+
+  workers.forEach(w=>{
+    list.innerHTML+=`
+      <tr>
+        <td>${w.n}</td>
+        <td>${w.nat}</td>
+        <td>${w.d}</td>
+        <td>${status(w.d)}</td>
+      </tr>
+    `;
+  });
+}
+
+document.getElementById("year").innerText=new Date().getFullYear();
+
+</script>
+
+</body>
+</html>
